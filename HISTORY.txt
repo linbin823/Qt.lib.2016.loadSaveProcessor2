@@ -1,0 +1,21 @@
+﻿Qt.lib.2016.loadSaveProcessor2 保存/读取 处理器 v2.0
+---20161221-----
+v2.0 版本规划
+---20161115-----
+v1.2 密码的修改方法放到接口类中
+---20161111-----
+v1.1微调
+---20160728-----
+v1.0 设计调试完成
+
+-TODO-
+---20161221-----
+使用STL、模板技术，重构该库。预计生成2.0版本。
+不再使用baseDevice基类，加入log库
+---20161201-----
+考虑是否可以简化使用。状态锁死什么的太麻烦了
+none
+---20161115-----
+iLoadSaveProcessor 不含setFileName 等基本操作，动态绑定时无法操作文件
+saveParameter 和 loadParameter 改成(const QString&, const QVariant& )函数
+
