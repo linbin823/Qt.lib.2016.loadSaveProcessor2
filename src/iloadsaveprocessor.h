@@ -45,7 +45,7 @@ public:
 
     //unwrap value from QString
     template<typename T>
-    int unwrapVal(const QString&& rawVal, T & retVal){
+    static int unwrapVal(const QString&& rawVal, T & retVal){
         const static size_t __intID = typeid (int).hash_code();
         const static size_t __uintID = typeid (unsigned int).hash_code();
         const static size_t __boolID = typeid (bool).hash_code();
@@ -133,7 +133,7 @@ public:
 
     //wrap value to QString
     template<typename T>
-    QString wrapVal(T & rawVal ){
+    static QString wrapVal(T & rawVal ){
         const static size_t __intID = typeid (int).hash_code();
         const static size_t __uintID = typeid (unsigned int).hash_code();
         const static size_t __boolID = typeid (bool).hash_code();
