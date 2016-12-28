@@ -19,11 +19,13 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+    void setValues();
+    void getValues();
+
 private slots:
-    void on_pushButton_clicked();
-    void setState(quint64 state);
+
     void on_PB_load_clicked();
-    void updateDisplay();
+    void on_PB_Save_clicked();
 
 private:
     Ui::MainWindow *ui;

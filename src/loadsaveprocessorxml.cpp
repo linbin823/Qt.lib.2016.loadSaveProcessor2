@@ -11,18 +11,15 @@
  * 2、是否需要AES加密
  * 返回数值：无
  * 功能描述：
- * 1、进入Initialization状态，初始化内部变量
+ * 1、初始化内部变量
  * 2、初始化本地xml文件
- * 3、进入Ready状态
  */
-loadSaveProcessorXml::loadSaveProcessorXml(QObject *parent, bool encrypt):baseDevice(parent)
+loadSaveProcessorXml::loadSaveProcessorXml(QObject *parent, bool encrypt):QObject(parent),_needEncrypt(encrypt)
 {
     _password = QString("fusion");
     _salt = QString("fusion");
     _aes = new QAesWrap(_password.toUtf8(), _salt.toUtf8(), QAesWrap::AES_256);
-    _needEncrypt = encrypt;
 
-    setState( stateReady );
     setResXmlFilePath( QString(QCoreApplication::applicationDirPath() + "/configuration.xml"));
 }
 
@@ -36,67 +33,71 @@ loadSaveProcessorXml::~loadSaveProcessorXml(){
     delete _aes;
 }
 
+
+//start to implement iLoadSaveProcessor
+
 /*
  * 读实例内的参数
  * 输入参数：
- * 1、传入参数的名称
- * 2、返回参数值
+ * 参数1：参数的名称
  * 返回数值：
- * 1、成功0，状态错误-1，找不到参数-2
+ * 参数1：返回参数值
  * 功能描述：
  * 1、子实例读取流程：a、移动到实例（MoveToInstance） b、读取参数（loadParameters） c、返回父实例（MoveBackToParent）
  * 2、读取当前parent位置下的指定paraName的paraValue
- * 3、找不到的话paraValue = -1，返回-2
+ * 3、找不到的话paraValue = null
  */
-int loadSaveProcessorXml::loadParameters(const QString& paraName, QString * paraValue){
-    if(getState() != stateOccupied ){
-        *paraValue = QString::null;
-        return -1;
+QString loadSaveProcessorXml::loadParameters(const QString&& paraName){
+    if( !isValid() ){
+        LOG_DEBUG() << "load parameters from " << paraName << " error, parent not valid";
+        return QString::null;
     }
+
     QDomElement temp;
-    int ret = getElement(temp,paraName);//* 返回数值： 成功0，输入参数错误-1，找不到-2
+    int ret = getElement(temp, paraName);//* 返回数值： 成功0，输入参数错误-1，找不到-2
     if( ret == 0 ){
-        if( !temp.childNodes().isEmpty() ){
-            *paraValue = temp.childNodes().at(0).toText().nodeValue();
-            return 0;//找到了，且有文本
+        if( !temp.childNodes().isEmpty() ){//找到了，且有文本
+            return temp.childNodes().at(0).toText().nodeValue();
         }
+        LOG_DEBUG() << "load parameters from " << paraName << " error, name found but text is empty.";
     }
-    *paraValue = QString::null;
-    return -2;//找不到
+    LOG_DEBUG() << "load parameters from " << paraName << " error, name not found";
+    return QString::null;
 }
 
 /*
  * 写实例内的参数
  * 输入参数：
- * 1、传入参数的名称
- * 2、传入参数值
+ * 参数1：写：参数的名称
+ * 参数2：写：传入参数值
  * 返回数值：
- * 1、成功0，状态错误-1
+ * 1、成功0
+ * 2、未准备好 -1
  * 功能描述：
  * 1、子实例写入流程：a、创建新实例（CreateNewInstance） b、写入参数（saveParameters） c、返回父实例（MoveBackToParent）
- * 2、把的paraName和paraValue保存到当前parent位置下
+ * 2、把的paraName和value保存到当前parent位置下
  * 3、若参数存在，则覆盖。若不存在，则新建
  */
-int loadSaveProcessorXml::saveParameters(const QString &paraName, const QString &paraValue){
-    if(getState() != stateOccupied ){
+int loadSaveProcessorXml::saveParameters(const QString&& paraName, const QString&& value){
+    if( !isValid() ){
+        LOG_DEBUG() << "save parameters to " << paraName << " error, parent not valid";
         return -1;
     }
     QDomElement temp;
     int ret = getElement(temp,paraName);//* 返回数值： 成功0，找不到-1
-    //qDebug()<<"loadSaveProcessorXml::saveParameters"<<ret;
-    //qDebug()<<"loadSaveProcessorXml::saveParameters"<<domElementParentList.size();
     if( ret == 0 ){
         if( !temp.childNodes().isEmpty() ){
-            temp.childNodes().at(0).toText().setNodeValue( paraValue );
+            temp.childNodes().at(0).toText().setNodeValue( value );
             return 0;//找到了
         }
-        QDomText newOne = _resXml.createTextNode( paraValue );
+        QDomText newOne = _resXml.createTextNode( value );
         temp.appendChild( newOne );
         return 0;
     }
     else{
+        LOG_DEBUG() << "save parameters to " << paraName << " ok, name not found, create a new one";
         QDomElement newElement  = _resXml.createElement( paraName );
-        QDomText    newOne      = _resXml.createTextNode( paraValue );
+        QDomText    newOne      = _resXml.createTextNode( value );
         newElement.appendChild( newOne );
         getParent().appendChild( newElement );
         return 0;//找不到,create new one
@@ -106,112 +107,164 @@ int loadSaveProcessorXml::saveParameters(const QString &paraName, const QString 
 /*
  * 移动到实例
  * 输入参数：
- * 1、ObjType 一般为类的名字
- * 2、Index 实例的序号，从0开始
+ * 参数1：ObjType 一般为类的名字
+ * 参数2：InstID实例标识符，一般为实例的序号
  * 返回数值：
- * 1、成功0，状态错误-1
+ * 1、成功0
+ * 2、未准备好 -1
  * 功能描述：
  * 1、子实例读取流程：a、移动到实例（MoveToInstance） b、读取参数（loadParameters） c、返回父实例（MoveBackToParent）
- * 20161120优化，子实例写入流程可以简化：
  * 2、子实例写入流程：a、移动到实例（MoveToInstance） c、写入参数（saveParameters） d、返回父实例（MoveBackToParent）
  */
-int loadSaveProcessorXml::moveToInstance(const QString &ObjType, const QString &index){
-    if(getState() != stateOccupied ){
+int loadSaveProcessorXml::moveToInstance(const QString&& ObjType, const QString&& InstID){
+    if( !isValid() ){
+        LOG_DEBUG() << "moveToInstance to " << ObjType << InstID << " error, parent not valid";
         return -1;
     }
+
     QDomNodeList newList = getParent().elementsByTagName(ObjType);
-//    if(newList.isEmpty()){
-//        return -2;
-//    }
-//    if(index.isNull()){
-//        pushParent(newList.at(0).toElement());
-//    }
+
     for(int i=0; i<newList.size(); i++){
         QDomElement newone = newList.at(i).toElement();
-        if(index.isNull()){
+        if(InstID.isNull()){
             pushParent(newone);
             return 0;
         }
-        else if( newone.attribute("id") == index){
+        else if( newone.attribute("id") == InstID){
             pushParent(newone);
             return 0;
         }
     }
     //找不到，建新再压栈
     QDomElement newone;
-    setElement(newone, ObjType, index);
+    setElement(newone, ObjType, InstID);
     pushParent( newone );
+    LOG_DEBUG() << "moveToInstance to " << ObjType << InstID << " ok, instance not found, create a new one.";
     return 0;
-}
-/*
- * 创建新实例(废弃)
- * 输入参数：
- * 1、ObjType 一般为类的名字
- * 2、InstID实例标识符，一般为实例的名称
- * 返回数值：
- * 1、new 0，existed! 1, 状态错误-1
- * 功能描述：
- * 1、子实例写入流程：a、创建新实例（CreateNewInstance）b、移动到实例（MoveToInstance） c、写入参数（saveParameters） d、返回父实例（MoveBackToParent）
- * 20161120优化，子实例写入流程可以简化：
- * 2、子实例写入流程：a、移动到实例（MoveToInstance） c、写入参数（saveParameters） d、返回父实例（MoveBackToParent）
- */
-int loadSaveProcessorXml::createNewInstance(const QString &ObjType, const QString &InstID){
-    if(getState() != stateOccupied ){
-        return -1;
-    }
-    QDomElement newone;
-    return setElement(newone, ObjType, InstID);
 }
 
 /*
  * 移动到父实例
  * 输入参数：无
  * 返回数值：
- * 1、成功0，状态错误-1
+ * 1、成功0
+ * 2、未准备好 -1
  * 功能描述：
  * 1、子实例读取流程：a、移动到实例（MoveToInstance） b、读取参数（loadParameters） c、返回父实例（MoveBackToParent）
- * 2、子实例写入流程：a、创建新实例（CreateNewInstance）b、移动到实例（MoveToInstance） c、写入参数（saveParameters） d、返回父实例（MoveBackToParent）
+ * 2、子实例写入流程：a、移动到实例（MoveToInstance） c、写入参数（saveParameters） d、返回父实例（MoveBackToParent）
  */
 int loadSaveProcessorXml::moveBackToParent(){
-    if(getState() != stateOccupied ){
+    if( !isValid() ){
+        LOG_DEBUG() << "moveBackToParent error, parent not valid";
         return -1;
     }
+
     popParent();
     return 0;
 }
 
 /*
- * 初始化xml文件(废弃)
+ * init
  * 输入参数：无
  * 返回数值：
- * 1、成功0，失败-1
+ * 1、成功0
  * 功能描述：
- * 1、初始化一个空的xml，并且写入基本信息
- * 2、写入文件
- * 3、发送文件更新信号
+ * 1、实施保存工作流程：a、init the processor b、root instance save parameters to processor c、saveFile
+ * 2、实施实施读取工作流程：a、loadFile b、root instance load parameters from processor
+ * 3、初始化_JsonParent _JsonPathName
  */
-int loadSaveProcessorXml::initXmlFile(){
-
-    quint64 lastState = getState();
-    setState( stateWriteFile );//进入指定写入文件模式
-
+int loadSaveProcessorXml::init(){
     _resXml.clear();
-
-    QString strHeader( "version=\"1.0\" encoding=\"UTF-8\"" );
-    _resXml.appendChild( _resXml.createProcessingInstruction("xml", strHeader) );
-
-    QDomElement rootElement = _resXml.createElement( "config" );
-    rootElement.setAttribute( "id", "test v1.0" );
-    _resXml.appendChild( rootElement );
-
-    int ret = writeXmlFile();
-    setState( lastState );//进入上个模式
-
-    emit resXmlRefresh();
-
-    return ret;
-
+    QDomElement root = _resXml.createElement("root");
+    _resXml.appendChild( root );
+    _domElementParentList.clear();
+    _domElementParentList.append( root );
+    return 0;
 }
+
+/*
+ * 读取xml文件
+ * 输入参数：无
+ * 返回数值：
+ * 1、成功0
+ * 2、文件内容错误-1
+ * 功能描述：
+ * 1、实施保存工作流程：a、init the processor b、root instance save parameters to processor c、saveFile
+ * 2、实施实施读取工作流程：a、loadFile b、root instance load parameters from processor
+ */
+int loadSaveProcessorXml::loadFile(const QString& fileName){
+    if(fileName != NULL){
+        setResXmlFilePath( fileName );
+    }
+    int ret = readXmlFile();
+    //qDebug()<<ret;
+    return ret;
+}
+/*
+ * 保存xml文件
+ * 输入参数：无
+ * 返回数值：
+ * 1、成功0
+ * 2、文件内容错误-1
+ * 功能描述：
+ * 1、实施保存工作流程：a、init the processor b、root instance save parameters to processor c、saveFile
+ * 2、实施实施读取工作流程：a、loadFile b、root instance load parameters from processor
+ */
+int loadSaveProcessorXml::saveFile(const QString& fileName){
+    if(fileName != NULL){
+        setResXmlFilePath( fileName );
+    }
+    return writeXmlFile();
+}
+
+/*
+ * 保存xml格式字符串
+ * 输入参数：
+ * 1、QByteArray&  return value
+ * 返回数值：
+ * 1、成功0
+ * 功能描述：
+ * 1、实施保存工作流程：a、init the processor b、root instance save parameters to processor c、saveFile
+ * 2、实施实施读取工作流程：a、loadFile b、root instance load parameters from processor
+ */
+int loadSaveProcessorXml::saveByteArray(QByteArray& result){
+    QTextStream out( &result );
+    out.setCodec("UTF-8");
+    _resXml.save(out,4,QDomNode::EncodingFromTextStream);//4是子项目缩进长度
+
+    return 0;
+}
+
+
+/*
+ * 读取xml格式字符串
+ * 输入参数：
+ * 1、QByteArray&  source value
+ * 返回数值：
+ * 1、成功0
+ * 2、文件内容错误-1
+ * 功能描述：
+ * 1、实施保存工作流程：a、init the processor b、root instance save parameters to processor c、saveFile
+ * 2、实施实施读取工作流程：a、loadFile b、root instance load parameters from processor
+ * 3、can't load encrypted string
+ */
+int loadSaveProcessorXml::loadByteArray(const QByteArray& source){
+    bool ok;
+    QString errMsg;
+    ok = _resXml.setContent(source,false,&errMsg);
+    if(!ok){
+        LOG_DEBUG() << "loadByteArray error"<<errMsg;
+        return -1;
+    }
+
+    _domElementParentList.clear();
+    _domElementParentList.append( _resXml.firstChildElement() );
+    emit resXmlRefresh();
+    return 0;
+}
+
+//finished to implement iLoadSaveProcessor
+
 /*
  * 读取xml文件
  * 输入参数：无
@@ -220,68 +273,27 @@ int loadSaveProcessorXml::initXmlFile(){
  * 功能描述：
  * 1、判断文件是已存在且正确，否则失败。
  * 2、读取文件到DOM对象
- * 3、读取时进入ReadFile模式，发生错误后返回到NotReady模式，读取成功后进入原有模式
  */
 int loadSaveProcessorXml::readXmlFile(){
 
-    quint64 lastState = getState();
-    setState( stateReadFile );//进入读取文件模式
-    //qDebug()<<"loadSaveProcessorXml::readXmlFile"<<lastState;
-
     QFile file(_resXmlFilePathWithoutProtocol);
     if( !file.exists()) {
-        setError( errorFileNotFound );
-//        20161120优化，取消初始化文件功能
-//        if (initXmlFile() != 0){
-//            setError( errorFileOpenFail );
-//            //qDebug()<<"loadSaveProcessorXml::readXmlFile"<<"errorFileOpenFail";
-//            setState( stateNotReady );//进入停止模式
-//            return -1;
-//        }
-        setState( stateNotReady );//进入停止模式
+        LOG_DEBUG() << "readXmlFile error, file not exist.";
         return -1;
     }
     if(!file.open(QIODevice::ReadOnly)){
-        //qDebug()<<"loadSaveProcessorXml::readXmlFile"<<"xml file open failed!\n"<<file.errorString();
-        setError( errorFileOpenFail );
+        LOG_DEBUG() << "readXmlFile error, file open failed.";
         file.close();
-        setState( stateNotReady );//进入停止模式
         return -1;
     }
-
     QByteArray orientalBytes = file.readAll();
-//    QDataStream data(&file);
-//    char* buffer = (char*)malloc(file.size() * sizeof(char) );
-//    data.readRawData(buffer, file.size() );
-//    QByteArray orientalBytes = QByteArray(buffer, file.size() );
-//    delete buffer;
     file.close();
 
-    bool ok;
-    QString errMsg;
     if(_needEncrypt){
         QByteArray decrypedBytes = _aes->decrypt(orientalBytes,QAesWrap::AES_ECB);
-        //qDebug()<<"loadSaveProcessorXml::readXmlFile"<<orientalBytes<<"||"<<decrypedBytes;
-        //qDebug()<<orientalBytes.length()<<decrypedBytes.length();
-        ok = _resXml.setContent(decrypedBytes,false,&errMsg);
+        return loadByteArray(decrypedBytes);
     }
-    else{
-        ok = _resXml.setContent(orientalBytes,false,&errMsg);
-    }
-    if(!ok){
-        setError( errorFlieFomatWrong );
-        file.close();
-        setState( stateNotReady );//进入停止模式
-        return -1;
-    }
-
-    //qDebug()<<"loadSaveProcessorXml::readXmlFile"<<resXml.firstChildElement().nodeName();
-    _domElementParentList.clear();
-    _domElementParentList.append( _resXml.firstChildElement() );
-    //qDebug()<<domElementParentList.at(0).toElement().nodeName();
-    emit resXmlRefresh();
-    setState( lastState );//进入上个模式
-    return 0;
+    return loadByteArray(orientalBytes);
 }
 
 /*
@@ -292,41 +304,27 @@ int loadSaveProcessorXml::readXmlFile(){
  * 功能描述：
  * 1、把DOM对象写入文件
  * 2、发送文件更新信号
- * 3、读取时进入WriteFile模式，发生错误后返回到NotReady模式，读取成功后进入原有模式
  */
 int loadSaveProcessorXml::writeXmlFile(){
-    quint64 lastState = getState();
-    setState( stateWriteFile );//进入写文件模式
+    QByteArray orientalBytes;
+    saveByteArray(orientalBytes);
 
     QFile file(_resXmlFilePathWithoutProtocol);
     if( !file.open(QIODevice::WriteOnly) )
     {
-        setError( errorFileWriteFail );
-        //qDebug()<<"xml file write error!";
-        setState( stateNotReady );//进入停止模式
+        LOG_DEBUG() << "writeXmlFile error, file open failed.";
         return -1;
     }
-
-    QByteArray orientalBytes;
-    QTextStream out( &orientalBytes );
-    out.setCodec("UTF-8");
-    _resXml.save(out,4,QDomNode::EncodingFromTextStream);//4是子项目缩进长度
-
     if(_needEncrypt){
         QByteArray encrypedBytes = _aes->encrypt(orientalBytes,QAesWrap::AES_ECB);
-        //qDebug()<<"loadSaveProcessorXml::writeXmlFile"<<orientalBytes<<"||"<<encrypedBytes<<orientalBytes.size()<<encrypedBytes.size();
-        //qDebug()<<_aes->decrypt(encrypedBytes, QAesWrap::AES_ECB);
         file.write( encrypedBytes, encrypedBytes.length());
     }
     else{
         file.write( orientalBytes.data(), orientalBytes.length());
     }
-
-
     file.close();
 
     emit resXmlRefresh();
-    setState( lastState );//进入上个模式
 
     return 0;
 }
@@ -404,15 +402,8 @@ int loadSaveProcessorXml::setElement(QDomElement& res, QString tagName, QString 
  * 3、每次写入都会检测文件名称
  */
 void loadSaveProcessorXml::setResXmlFilePath(const QString &name){
-//    QFileInfo test = QFileInfo(name);
-//    if( !test.isFile() ){
-//        setError( errorFileNameError );
-//        return;
-//    }
     _resXmlFilePathWithoutProtocol = QDir::toNativeSeparators(name);
     _resXmlFilePath = QDir::toNativeSeparators( "file:" + name );
-    //qDebug()<<_resXmlFilePath;
-    //qDebug()<<_resXmlFilePathWithoutProtocol;
     emit resXmlFilePathChanged();
 }
 
@@ -426,69 +417,8 @@ void loadSaveProcessorXml::setResXmlFilePath(const QString &name){
 QString loadSaveProcessorXml::getResXmlFilePath(void) const{
     return _resXmlFilePath;
 }
-/*
- * 读取xml文件
- * 输入参数：无
- * 返回数值：
- * 1、成功0，失败-1，文件内容错误-21
- * 功能描述：
- * 1、实施保存工作流程：a、启动事务(transactionStart) b、顶层实例顺序调用每个子实例的保存函数 c、子实例顺序调更下级的子实例保存函数 d、所有保存完毕后，顶层实例调用保存文件（saveFile） e、结束事务（transactionEnd）
- * 2、实施读取工作流程：a、启动事务(transactionStart) b、顶层实例调用读取文件（loadFile），可以是默认文件，也可以指定文件 c、顶层实例顺序调用每个子实例的读取函数 d、子实例顺序调更下级的子实例读取函数  e、结束事务（transactionEnd）
- */
-int loadSaveProcessorXml::loadFile(const QString& fileName){
-    if(fileName != NULL){
-        setResXmlFilePath( fileName );
-    }
-    int ret = readXmlFile();
-    //qDebug()<<ret;
-    return ret;
-}
-/*
- * 保存xml文件
- * 输入参数：无
- * 返回数值：
- * 1、成功0，写入错误-1
- * 功能描述：
- * 1、实施保存工作流程：a、启动事务(transactionStart) b、顶层实例顺序调用每个子实例的保存函数 c、子实例顺序调更下级的子实例保存函数 d、所有保存完毕后，顶层实例调用保存文件（saveFile） e、结束事务（transactionEnd）
- * 2、实施读取工作流程：a、启动事务(transactionStart) b、顶层实例调用读取文件（loadFile），可以是默认文件，也可以指定文件 c、顶层实例顺序调用每个子实例的读取函数 d、子实例顺序调更下级的子实例读取函数  e、结束事务（transactionEnd）
- */
-int loadSaveProcessorXml::saveFile(const QString& fileName){
-    if(fileName != NULL){
-        setResXmlFilePath( fileName );
-    }
-    return writeXmlFile();
-}
-/*
- * 启动事务
- * 输入参数：无
- * 返回数值：
- * 1、成功0，启动失败-1
- * 功能描述：
- * 1、实施保存工作流程：a、启动事务(transactionStart) b、顶层实例顺序调用每个子实例的保存函数 c、子实例顺序调更下级的子实例保存函数 d、所有保存完毕后，顶层实例调用保存文件（saveFile） e、结束事务（transactionEnd）
- * 2、实施读取工作流程：a、启动事务(transactionStart) b、顶层实例调用读取文件（loadFile），可以是默认文件，也可以指定文件 c、顶层实例顺序调用每个子实例的读取函数 d、子实例顺序调更下级的子实例读取函数  e、结束事务（transactionEnd）
- * 3、初始化domElementParentList
- */
-int loadSaveProcessorXml::transactionStart(){
-    if(getState() != stateReady) return -1;
-    setState( stateOccupied );
-    _resXml.clear();
-    QDomElement root = _resXml.createElement("root");
-    _resXml.appendChild( root );
-    _domElementParentList.clear();
-    _domElementParentList.append( root );
-    return 0;
-}
-/*
- * 结束事务
- * 输入参数：无
- * 返回数值：
- * 1、成功0，结束失败-1
- * 功能描述：
- * 1、实施保存工作流程：a、启动事务(transactionStart) b、顶层实例顺序调用每个子实例的保存函数 c、子实例顺序调更下级的子实例保存函数 d、所有保存完毕后，顶层实例调用保存文件（saveFile） e、结束事务（transactionEnd）
- * 2、实施读取工作流程：a、启动事务(transactionStart) b、顶层实例调用读取文件（loadFile），可以是默认文件，也可以指定文件 c、顶层实例顺序调用每个子实例的读取函数 d、子实例顺序调更下级的子实例读取函数  e、结束事务（transactionEnd）
- */
-int loadSaveProcessorXml::transactionEnd(){
-    if(getState() != stateOccupied) return -1;
-    setState( stateReady );
-    return 0;
+
+//is JsonParent valid
+bool loadSaveProcessorXml::isValid(){
+    return true;
 }

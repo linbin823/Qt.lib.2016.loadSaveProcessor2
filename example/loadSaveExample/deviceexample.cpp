@@ -1,6 +1,6 @@
 ﻿#include "deviceexample.h"
 
-deviceExample::deviceExample(QObject *parent):baseDevice(parent)
+deviceExample::deviceExample(QObject *parent):QObject(parent)
 {
 
     para1 = 12;
@@ -10,22 +10,15 @@ deviceExample::deviceExample(QObject *parent):baseDevice(parent)
 
 
 int deviceExample::load(iLoadSaveProcessor *processor){
-    QString value;
-    processor->loadParameters( QString("para1") , &value );
-    para1 = value.toInt();
-    processor->loadParameters( QString("para2") , &value );
-    para2 = value;
-    processor->loadParameters( QString("para3") , &value );
-    para3 = value.toFloat();
+    processor->unwrapVal( processor->loadParameters( "para1" ) , para1 );
+    processor->unwrapVal( processor->loadParameters( "para2" ) , para2 );
+    processor->unwrapVal( processor->loadParameters( "para3" ) , para3 );
     return 0;
 }
 
 int deviceExample::save(iLoadSaveProcessor *processor){
-    int ret;
-    ret = processor->saveParameters( QString("para1"), QString::number( para1 ) );
-    if(ret < 0) return -1;
-    ret = processor->saveParameters( QString("para2"), para2 );
-    if(ret < 0) return -1;
-    ret = processor->saveParameters( QString("para3"), QString::number( para3 ) );
+    processor->saveParameters( "para1", processor->wrapVal( para1 ) );
+    processor->saveParameters( "para2", processor->wrapVal( para2 ) );
+    processor->saveParameters( "para3", processor->wrapVal( para3 ) );
     return 0;
 }
