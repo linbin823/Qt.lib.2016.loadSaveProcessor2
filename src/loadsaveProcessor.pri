@@ -14,7 +14,8 @@ INCLUDEPATH += $$PWD\
 
 HEADERS  += $$PWD/iloadsaveprocessor.h \
             $$PWD/loadsaveprocessorxml.h \
-	    $$PWD/loadsaveprocessorjson.h
+	    $$PWD/loadsaveprocessorjson.h \
+            $$PWD/iloadsave.h
 
 
 DISTFILES += \

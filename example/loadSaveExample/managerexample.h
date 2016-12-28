@@ -2,10 +2,11 @@
 #define MANAGEREXAMPLE_H
 
 #include "iloadsaveprocessor.h"
+#include "iloadsave.h"
 #include "deviceexample.h"
 
 
-class managerExample : public QObject
+class managerExample : public QObject, public iLoadSave
 {
     Q_OBJECT
 public:

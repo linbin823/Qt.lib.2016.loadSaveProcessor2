@@ -2,15 +2,16 @@
 #define DEVICEEXAMPLE_H
 
 #include "iloadsaveprocessor.h"
+#include "iloadsave.h"
 
-class deviceExample : public QObject
+class deviceExample : public QObject, public iLoadSave
 {
 public:
     deviceExample(QObject *parent = 0);
 
 
-    int load(iLoadSaveProcessor *processor);
-    int save(iLoadSaveProcessor *processor);
+    virtual int load(iLoadSaveProcessor *processor);
+    virtual int save(iLoadSaveProcessor *processor);
 
     int para1;
     QString para2;
