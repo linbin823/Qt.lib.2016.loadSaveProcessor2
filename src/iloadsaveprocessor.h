@@ -22,11 +22,11 @@ public:
     //读写实例内的参数
     //参数1：读：参数的名称 写：参数的名称
     //参数2：读：返回参数值 写：传入参数值
-    virtual QString loadParameters(const QString&& paraName) = 0;
-    virtual int saveParameters(const QString&& paraName, const QString&& value) = 0;
+    virtual QString readParameters(const QString&& paraName) = 0;
+    virtual int writeParameters(const QString&& paraName, const QString&& value) = 0;
 
-    //子实例读取流程：a、移动到实例（MoveToInstance） b、读取参数（loadParameters） c、返回父实例（MoveBackToParent）
-    //子实例写入流程：a、移动到实例（MoveToInstance） c、写入参数（saveParameters） d、返回父实例（MoveBackToParent）
+    //子实例读取流程：a、移动到实例（MoveToInstance） b、读取参数（readParameters） c、返回父实例（MoveBackToParent）
+    //子实例写入流程：a、移动到实例（MoveToInstance） c、写入参数（writeParameters） d、返回父实例（MoveBackToParent）
     //参数1：ObjType 一般为类的名字
     //参数2：InstID实例标识符，一般为实例的序号
     virtual int moveToInstance(const QString&& ObjType, const QString&& InstID) =0;
@@ -43,9 +43,13 @@ public:
     //修改获取保存密码
     virtual void setPassWord(const QString&& pswd) = 0;
 
-    //unwrap value from QString
+
+    //easy api, do not work for enum type
+    //readValue combined
     template<typename T>
-    static int unwrapVal(const QString&& rawVal, T & retVal){
+    int readValue(const QString&& paraName, T & retVal){
+        QString rawVal = readParameters( QString(paraName) );
+
         const static size_t __intID = typeid (int).hash_code();
         const static size_t __uintID = typeid (unsigned int).hash_code();
         const static size_t __boolID = typeid (bool).hash_code();
@@ -131,9 +135,9 @@ public:
         return -2;
     }
 
-    //wrap value to QString
+    //writeValue combined
     template<typename T>
-    static QString wrapVal(T & rawVal ){
+    int writeValue(const QString&& paraName, T & rawVal ){
         const static size_t __intID = typeid (int).hash_code();
         const static size_t __uintID = typeid (unsigned int).hash_code();
         const static size_t __boolID = typeid (bool).hash_code();
@@ -153,64 +157,64 @@ public:
         if(id == __intID)
         {
             int temp = *(int*) p;
-            return QString::number( temp );
+            return writeParameters(QString(paraName), QString::number( temp ) );
         }
         else if(id == __uintID)
         {
             unsigned int temp = *(unsigned int*) p;
-            return QString::number( temp );
+            return writeParameters(QString(paraName), QString::number( temp ) );
         }
         else if(id == __boolID)
         {
             bool temp = *(bool*) p;
-            return QString::number( temp );
+            return writeParameters(QString(paraName), QString::number( temp ) );
         }
         else if(id == __doubleID)
         {
             double temp = *(double*) p;
-            return QString::number( temp );
+            return writeParameters(QString(paraName), QString::number( temp ) );
         }
         else if(id == __floatID)
         {
             float temp = *(float*) p;
-            return QString::number( temp );
+            return writeParameters(QString(paraName), QString::number( temp ) );
         }
         else if(id == __llID)
         {
             long long temp = *(long long*) p;
-            return QString::number( temp );
+            return writeParameters(QString(paraName), QString::number( temp ) );
         }
         else if(id == __ullID)
         {
             unsigned long long temp = *(unsigned long long*) p;
-            return QString::number( temp );
+            return writeParameters(QString(paraName), QString::number( temp ) );
         }
         else if(id == __QStringID)
         {
-            return *(QString*) p;
+            return writeParameters(QString(paraName),  QString(*(QString*) p) );
         }
         else if(id == __QDateTimeID)
         {
             QDateTime temp = *(QDateTime*) p;
-            return temp.toString();
+            return writeParameters(QString(paraName), temp.toString() );
         }
         else if(id == __QDateID)
         {
             QDate temp = *(QDate*) p;
-            return temp.toString();
+            return writeParameters(QString(paraName), temp.toString() );
         }
         else if(id == __QTimeID)
         {
             QTime temp = *(QTime*) p;
-            return temp.toString();
+            return writeParameters(QString(paraName), temp.toString() );
         }
         else if(id == __QByteArrayID)
         {
             QByteArray temp = *(QByteArray*) p;
-            return QString( temp.toBase64() );
+            return writeParameters(QString(paraName), QString( temp.toBase64() ) );
         }
         LOG_DEBUG() << "wrap value error: unknow type:"<<id;
-        return QString::null;
+        return -1;
     }
 };
 

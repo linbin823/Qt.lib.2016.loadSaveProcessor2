@@ -11,36 +11,33 @@ managerExample::managerExample(QObject *parent ):QObject(parent)
     para3 = 23.2314;
 }
 
-int managerExample::load(iLoadSaveProcessor *processor){
-    iLoadSaveProcessor::unwrapVal(  processor->loadParameters( "para1"), para1 );
-    iLoadSaveProcessor::unwrapVal(  processor->loadParameters( "para2"), para2 );
-    iLoadSaveProcessor::unwrapVal(  processor->loadParameters( "para3"), para3 );
+void managerExample::load(iLoadSaveProcessor *processor){
+    processor->readValue("para1", para1);
+    processor->readValue("para2", para2);
+    processor->readValue("para3", para3);
     //qDebug()<<value<<para3;
-
+    int ret;
     for(int i=0; i<=5; i++){
         int ret = processor->moveToInstance( QString("deviceExample") , QString::number( i ) );
         if(ret != 0) continue;
         pDeviceList.at(i)->load( processor );
         processor->moveBackToParent();
     }
-    return 0;
-
 }
 
-int managerExample::save(iLoadSaveProcessor *processor){
+void managerExample::save(iLoadSaveProcessor *processor){
     //qDebug()<<"managerExample::save"<<QString("para1")<<QString::number( para1 );
-    processor->saveParameters( "para1", iLoadSaveProcessor::wrapVal( para1 ) );
-    processor->saveParameters( "para2", iLoadSaveProcessor::wrapVal( para2 ) );
-    processor->saveParameters( "para3", iLoadSaveProcessor::wrapVal( para3 ) );
+    processor->writeValue( "para1", para1 );
+    processor->writeValue( "para2", para2 );
+    processor->writeValue( "para3", para3 );
     int ret;
     for(int i=0; i<=5; i++){
 //        ret = processor->createNewInstance( QString("deviceExample") , QString::number( i ) );
 //        if(ret < 0) continue;
         ret = processor->moveToInstance(    QString("deviceExample") , QString::number( i ) );
         if(ret < 0) continue;
-        ret = pDeviceList.at(i)->save( processor );
+        pDeviceList.at(i)->save( processor );
         if(ret < 0) continue;
         processor->moveBackToParent();
     }
-    return 0;
 }

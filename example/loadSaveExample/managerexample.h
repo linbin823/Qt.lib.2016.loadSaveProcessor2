@@ -12,8 +12,8 @@ class managerExample : public QObject, public iLoadSave
 public:
     managerExample(QObject *parent = 0);
 
-    virtual int load(iLoadSaveProcessor *processor);
-    virtual int save(iLoadSaveProcessor *processor);
+    virtual void load(iLoadSaveProcessor *processor);
+    virtual void save(iLoadSaveProcessor *processor);
 
     int para1;
     QString para2;

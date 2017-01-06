@@ -30,11 +30,11 @@ public:
     //读写实例内的参数
     //参数1：读：参数的名称 写：参数的名称
     //参数2：读：返回参数值 写：传入参数值
-    virtual QString loadParameters(const QString&& paraName);
-    virtual int saveParameters(const QString&& paraName, const QString&& value);
+    virtual QString readParameters(const QString&& paraName);
+    virtual int writeParameters(const QString&& paraName, const QString&& value);
 
-    //子实例读取流程：a、移动到实例（MoveToInstance） b、读取参数（loadParameters） c、返回父实例（MoveBackToParent）
-    //子实例写入流程：a、移动到实例（MoveToInstance） c、写入参数（saveParameters） d、返回父实例（MoveBackToParent）
+    //子实例读取流程：a、移动到实例（MoveToInstance） b、读取参数（readParameters） c、返回父实例（MoveBackToParent）
+    //子实例写入流程：a、移动到实例（MoveToInstance） c、写入参数（writeParameters） d、返回父实例（MoveBackToParent）
     //参数1：ObjType 一般为类的名字
     //参数2：InstID实例标识符，一般为实例的序号
     virtual int moveToInstance(const QString&& ObjType, const QString&& InstID);

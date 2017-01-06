@@ -9,16 +9,15 @@ deviceExample::deviceExample(QObject *parent):QObject(parent)
 }
 
 
-int deviceExample::load(iLoadSaveProcessor *processor){
-    iLoadSaveProcessor::unwrapVal( processor->loadParameters( "para1" ) , para1 );
-    iLoadSaveProcessor::unwrapVal( processor->loadParameters( "para2" ) , para2 );
-    iLoadSaveProcessor::unwrapVal( processor->loadParameters( "para3" ) , para3 );
-    return 0;
+void deviceExample::load(iLoadSaveProcessor *processor){
+
+    processor->readValue("para1", para1);
+    processor->readValue("para2", para2);
+    processor->readValue("para3", para3);
 }
 
-int deviceExample::save(iLoadSaveProcessor *processor){
-    processor->saveParameters( "para1", iLoadSaveProcessor::wrapVal( para1 ) );
-    processor->saveParameters( "para2", iLoadSaveProcessor::wrapVal( para2 ) );
-    processor->saveParameters( "para3", iLoadSaveProcessor::wrapVal( para3 ) );
-    return 0;
+void deviceExample::save(iLoadSaveProcessor *processor){
+    processor->writeValue( "para1", para1 );
+    processor->writeValue( "para2", para2 );
+    processor->writeValue( "para3", para3 );
 }

@@ -43,11 +43,11 @@ loadSaveProcessorXml::~loadSaveProcessorXml(){
  * 返回数值：
  * 参数1：返回参数值
  * 功能描述：
- * 1、子实例读取流程：a、移动到实例（MoveToInstance） b、读取参数（loadParameters） c、返回父实例（MoveBackToParent）
+ * 1、子实例读取流程：a、移动到实例（MoveToInstance） b、读取参数（readParameters） c、返回父实例（MoveBackToParent）
  * 2、读取当前parent位置下的指定paraName的paraValue
  * 3、找不到的话paraValue = null
  */
-QString loadSaveProcessorXml::loadParameters(const QString&& paraName){
+QString loadSaveProcessorXml::readParameters(const QString&& paraName){
     if( !isValid() ){
         LOG_DEBUG() << "load parameters from " << paraName << " error, parent not valid";
         return QString::null;
@@ -74,11 +74,11 @@ QString loadSaveProcessorXml::loadParameters(const QString&& paraName){
  * 1、成功0
  * 2、未准备好 -1
  * 功能描述：
- * 1、子实例写入流程：a、创建新实例（CreateNewInstance） b、写入参数（saveParameters） c、返回父实例（MoveBackToParent）
+ * 1、子实例写入流程：a、创建新实例（CreateNewInstance） b、写入参数（writeParameters） c、返回父实例（MoveBackToParent）
  * 2、把的paraName和value保存到当前parent位置下
  * 3、若参数存在，则覆盖。若不存在，则新建
  */
-int loadSaveProcessorXml::saveParameters(const QString&& paraName, const QString&& value){
+int loadSaveProcessorXml::writeParameters(const QString&& paraName, const QString&& value){
     if( !isValid() ){
         LOG_DEBUG() << "save parameters to " << paraName << " error, parent not valid";
         return -1;
@@ -113,8 +113,8 @@ int loadSaveProcessorXml::saveParameters(const QString&& paraName, const QString
  * 1、成功0
  * 2、未准备好 -1
  * 功能描述：
- * 1、子实例读取流程：a、移动到实例（MoveToInstance） b、读取参数（loadParameters） c、返回父实例（MoveBackToParent）
- * 2、子实例写入流程：a、移动到实例（MoveToInstance） c、写入参数（saveParameters） d、返回父实例（MoveBackToParent）
+ * 1、子实例读取流程：a、移动到实例（MoveToInstance） b、读取参数（readParameters） c、返回父实例（MoveBackToParent）
+ * 2、子实例写入流程：a、移动到实例（MoveToInstance） c、写入参数（writeParameters） d、返回父实例（MoveBackToParent）
  */
 int loadSaveProcessorXml::moveToInstance(const QString&& ObjType, const QString&& InstID){
     if( !isValid() ){
@@ -150,8 +150,8 @@ int loadSaveProcessorXml::moveToInstance(const QString&& ObjType, const QString&
  * 1、成功0
  * 2、未准备好 -1
  * 功能描述：
- * 1、子实例读取流程：a、移动到实例（MoveToInstance） b、读取参数（loadParameters） c、返回父实例（MoveBackToParent）
- * 2、子实例写入流程：a、移动到实例（MoveToInstance） c、写入参数（saveParameters） d、返回父实例（MoveBackToParent）
+ * 1、子实例读取流程：a、移动到实例（MoveToInstance） b、读取参数（readParameters） c、返回父实例（MoveBackToParent）
+ * 2、子实例写入流程：a、移动到实例（MoveToInstance） c、写入参数（writeParameters） d、返回父实例（MoveBackToParent）
  */
 int loadSaveProcessorXml::moveBackToParent(){
     if( !isValid() ){
