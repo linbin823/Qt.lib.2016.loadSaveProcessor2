@@ -1,6 +1,3 @@
 [submodule "lib/QAes"]
 	path = lib/QAes
 	url = https://github.com/dushibaiyu/QAes.git
-[submodule "lib/Qlogger"]
-	path = lib/Qlogger
-	url = https://github.com/dragondjf/Qlogger.git
