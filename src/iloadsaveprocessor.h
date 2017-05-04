@@ -8,8 +8,8 @@
 #include <QDebug>
 #include <QByteArray>
 #include <typeinfo>
+
 #include "qaeswrap.h"
-#include "Logger.h"
 
 //not reenterable
 //not thread safe
@@ -65,7 +65,7 @@ public:
 
         if(true == rawVal.isNull() ){
             //dont touch retVal
-            LOG_DEBUG() << "unwrap value error: Null value. retrun variable is not touched!";
+            qDebug() << "unwrap value error: Null value. retrun variable is not touched!";
             return -1;
         }
         bool ok;
@@ -131,7 +131,7 @@ public:
             *(QByteArray *)p = QByteArray::fromBase64( rawVal.toLocal8Bit() );
             return 0;
         }
-        LOG_DEBUG() << "unwrap value error: unknow type:"<<id;
+        qDebug() << "unwrap value error: unknow type:"<<id;
         return -2;
     }
 
@@ -213,7 +213,7 @@ public:
             QByteArray temp = *(QByteArray*) p;
             return writeParameters(QString(paraName), QString( temp.toBase64() ) );
         }
-        LOG_DEBUG() << "wrap value error: unknow type:"<<id;
+        qDebug() << "wrap value error: unknow type:"<<id;
         return -1;
     }
 };

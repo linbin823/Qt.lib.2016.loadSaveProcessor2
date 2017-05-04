@@ -58,7 +58,7 @@ loadSaveProcessorJson::~loadSaveProcessorJson()
  */
 QString loadSaveProcessorJson::readParameters(const QString&& paraName){
     if( !isValid() ){
-        LOG_DEBUG() << "load parameters from " << paraName << " error, parent not valid";
+        qDebug() << "load parameters from " << paraName << " error, parent not valid";
         return QString::null;
     }
 
@@ -80,7 +80,7 @@ QString loadSaveProcessorJson::readParameters(const QString&& paraName){
  */
 int loadSaveProcessorJson::writeParameters(const QString&& paraName, const QString&& value){
     if( !isValid() ){
-        LOG_DEBUG() << "save parameters to " << paraName << " error, parent not valid";
+        qDebug() << "save parameters to " << paraName << " error, parent not valid";
         return -1;
     }
 
@@ -103,7 +103,7 @@ int loadSaveProcessorJson::writeParameters(const QString&& paraName, const QStri
  */
 int loadSaveProcessorJson::moveToInstance(const QString&& ObjType, const QString&& InstID){
     if( !isValid() ){
-        LOG_DEBUG() << "moveToInstance to " << ObjType << InstID << " error, parent not valid";
+        qDebug() << "moveToInstance to " << ObjType << InstID << " error, parent not valid";
         return -1;
     }
 
@@ -125,7 +125,7 @@ int loadSaveProcessorJson::moveToInstance(const QString&& ObjType, const QString
  */
 int loadSaveProcessorJson::moveBackToParent(){
     if( !isValid() ){
-        LOG_DEBUG() << "moveBackToParent error, parent not valid";
+        qDebug() << "moveBackToParent error, parent not valid";
         return -1;
     }
 
@@ -231,7 +231,7 @@ int loadSaveProcessorJson::loadByteArray(const QByteArray& source){
         return 0;
     }
     else{
-        LOG_DEBUG() << "loadByteArray error"<<ok.errorString();
+        qDebug() << "loadByteArray error"<<ok.errorString();
         return -1;
     }
 }
@@ -361,12 +361,12 @@ int loadSaveProcessorJson::readJsonFile(){
 
     QFile file(_JsonFilePathWithoutProtocol);
     if( !file.exists()) {
-        LOG_DEBUG() << "read json file error: file not exists";
+        qDebug() << "read json file error: file not exists";
         return -1;
     }
     if(!file.open(QIODevice::ReadOnly)){
         file.close();
-        LOG_DEBUG() << "read json file error: file open fail";
+        qDebug() << "read json file error: file open fail";
         return -2;
     }
     QByteArray orientalBytes = file.readAll();
@@ -381,7 +381,7 @@ int loadSaveProcessorJson::readJsonFile(){
         ret = loadByteArray( orientalBytes );
     }
     if(ret != 0){
-        LOG_DEBUG() << "read json file error: file format error";
+        qDebug() << "read json file error: file format error";
         return -3;
     }
 
@@ -403,7 +403,7 @@ int loadSaveProcessorJson::writeJsonFile(){
     QFile file(_JsonFilePathWithoutProtocol);
     if( !file.open(QIODevice::WriteOnly) )
     {
-        LOG_DEBUG() << "write json file error: file open fail";
+        qDebug() << "write json file error: file open fail";
         return -1;
     }
 
@@ -426,17 +426,17 @@ int loadSaveProcessorJson::writeJsonFile(){
 
 void loadSaveProcessorJson::debugPrint(QJsonObject* obj){
     QJsonObject::Iterator it;
-    LOG_INFO() << "debugPrint:";
+    qDebug() << "debugPrint:";
     for(it = obj->begin(); it!=obj->end(); ++it){
         if(it.value().isObject() ){
-            LOG_INFO() << "QJsonObject: "<<it.key();
+            qDebug() << "QJsonObject: "<<it.key();
             QJsonObject temp = it.value().toObject();
             debugPrint( &temp );
-            LOG_INFO() <<"QJsonObject: "<<it.key()<<" End:";
+            qDebug() <<"QJsonObject: "<<it.key()<<" End:";
         }
         else{
-            LOG_INFO() <<it.key()<<it.value().toString();
+            qDebug() <<it.key()<<it.value().toString();
         }
     }
-    LOG_INFO() <<"debugPrint End";
+    qDebug() <<"debugPrint End";
 }

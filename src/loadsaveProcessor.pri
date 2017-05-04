@@ -2,7 +2,6 @@ QT       += core xml xmlpatterns
 
 CONFIG   += c++11
 
-include($$PWD/../lib/Qlogger/cutelogger/cutelogger.pri)
 include($$PWD/../lib/QAes/QAes/QAes.pri)
 
 SOURCES +=  \

@@ -49,7 +49,7 @@ loadSaveProcessorXml::~loadSaveProcessorXml(){
  */
 QString loadSaveProcessorXml::readParameters(const QString&& paraName){
     if( !isValid() ){
-        LOG_DEBUG() << "load parameters from " << paraName << " error, parent not valid";
+        qDebug() << "load parameters from " << paraName << " error, parent not valid";
         return QString::null;
     }
 
@@ -59,9 +59,9 @@ QString loadSaveProcessorXml::readParameters(const QString&& paraName){
         if( !temp.childNodes().isEmpty() ){//找到了，且有文本
             return temp.childNodes().at(0).toText().nodeValue();
         }
-        LOG_DEBUG() << "load parameters from " << paraName << " error, name found but text is empty.";
+        qDebug() << "load parameters from " << paraName << " error, name found but text is empty.";
     }
-    LOG_DEBUG() << "load parameters from " << paraName << " error, name not found";
+    qDebug() << "load parameters from " << paraName << " error, name not found";
     return QString::null;
 }
 
@@ -80,7 +80,7 @@ QString loadSaveProcessorXml::readParameters(const QString&& paraName){
  */
 int loadSaveProcessorXml::writeParameters(const QString&& paraName, const QString&& value){
     if( !isValid() ){
-        LOG_DEBUG() << "save parameters to " << paraName << " error, parent not valid";
+        qDebug() << "save parameters to " << paraName << " error, parent not valid";
         return -1;
     }
     QDomElement temp;
@@ -95,7 +95,7 @@ int loadSaveProcessorXml::writeParameters(const QString&& paraName, const QStrin
         return 0;
     }
     else{
-        LOG_DEBUG() << "save parameters to " << paraName << " ok, name not found, create a new one";
+        qDebug() << "save parameters to " << paraName << " ok, name not found, create a new one";
         QDomElement newElement  = _resXml.createElement( paraName );
         QDomText    newOne      = _resXml.createTextNode( value );
         newElement.appendChild( newOne );
@@ -118,7 +118,7 @@ int loadSaveProcessorXml::writeParameters(const QString&& paraName, const QStrin
  */
 int loadSaveProcessorXml::moveToInstance(const QString&& ObjType, const QString&& InstID){
     if( !isValid() ){
-        LOG_DEBUG() << "moveToInstance to " << ObjType << InstID << " error, parent not valid";
+        qDebug() << "moveToInstance to " << ObjType << InstID << " error, parent not valid";
         return -1;
     }
 
@@ -139,7 +139,7 @@ int loadSaveProcessorXml::moveToInstance(const QString&& ObjType, const QString&
     QDomElement newone;
     setElement(newone, ObjType, InstID);
     pushParent( newone );
-    LOG_DEBUG() << "moveToInstance to " << ObjType << InstID << " ok, instance not found, create a new one.";
+    qDebug() << "moveToInstance to " << ObjType << InstID << " ok, instance not found, create a new one.";
     return 0;
 }
 
@@ -155,7 +155,7 @@ int loadSaveProcessorXml::moveToInstance(const QString&& ObjType, const QString&
  */
 int loadSaveProcessorXml::moveBackToParent(){
     if( !isValid() ){
-        LOG_DEBUG() << "moveBackToParent error, parent not valid";
+        qDebug() << "moveBackToParent error, parent not valid";
         return -1;
     }
 
@@ -253,7 +253,7 @@ int loadSaveProcessorXml::loadByteArray(const QByteArray& source){
     QString errMsg;
     ok = _resXml.setContent(source,false,&errMsg);
     if(!ok){
-        LOG_DEBUG() << "loadByteArray error"<<errMsg;
+        qDebug() << "loadByteArray error"<<errMsg;
         return -1;
     }
 
@@ -278,11 +278,11 @@ int loadSaveProcessorXml::readXmlFile(){
 
     QFile file(_resXmlFilePathWithoutProtocol);
     if( !file.exists()) {
-        LOG_DEBUG() << "readXmlFile error, file not exist.";
+        qDebug() << "readXmlFile error, file not exist.";
         return -1;
     }
     if(!file.open(QIODevice::ReadOnly)){
-        LOG_DEBUG() << "readXmlFile error, file open failed.";
+        qDebug() << "readXmlFile error, file open failed.";
         file.close();
         return -1;
     }
@@ -312,7 +312,7 @@ int loadSaveProcessorXml::writeXmlFile(){
     QFile file(_resXmlFilePathWithoutProtocol);
     if( !file.open(QIODevice::WriteOnly) )
     {
-        LOG_DEBUG() << "writeXmlFile error, file open failed.";
+        qDebug() << "writeXmlFile error, file open failed.";
         return -1;
     }
     if(_needEncrypt){
