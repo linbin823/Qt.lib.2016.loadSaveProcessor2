@@ -8,8 +8,9 @@
 #include <QDebug>
 #include <QByteArray>
 #include <typeinfo>
-
+#include <QHostAddress>
 #include "qaeswrap.h"
+//#include "Logger.h"
 
 //not reenterable
 //not thread safe
@@ -62,6 +63,7 @@ public:
         const static size_t __QDateID = typeid (QDate).hash_code();
         const static size_t __QTimeID = typeid (QTime).hash_code();
         const static size_t __QByteArrayID = typeid (QByteArray).hash_code();
+        const static size_t __QHostAddress = typeid (QHostAddress).hash_code();
 
         if(true == rawVal.isNull() ){
             //dont touch retVal
@@ -131,6 +133,11 @@ public:
             *(QByteArray *)p = QByteArray::fromBase64( rawVal.toLocal8Bit() );
             return 0;
         }
+        else if(id == __QHostAddress)
+        {
+            *(QHostAddress *)p = QHostAddress(rawVal);
+            return 0;
+        }
         qDebug() << "unwrap value error: unknow type:"<<id;
         return -2;
     }
@@ -150,6 +157,7 @@ public:
         const static size_t __QDateID = typeid (QDate).hash_code();
         const static size_t __QTimeID = typeid (QTime).hash_code();
         const static size_t __QByteArrayID = typeid (QByteArray).hash_code();
+        const static size_t __QHostAddress = typeid (QHostAddress).hash_code();
 
         const size_t id = (typeid (rawVal).hash_code());
         void *p = &rawVal;
@@ -212,6 +220,11 @@ public:
         {
             QByteArray temp = *(QByteArray*) p;
             return writeParameters(QString(paraName), QString( temp.toBase64() ) );
+        }
+        else if(id == __QHostAddress)
+        {
+            QHostAddress adr = *(QHostAddress*)p;
+            return writeParameters(QString(paraName), adr.toString() );
         }
         qDebug() << "wrap value error: unknow type:"<<id;
         return -1;
