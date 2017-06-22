@@ -53,11 +53,14 @@ public:
 
         const static size_t __intID = typeid (int).hash_code();
         const static size_t __uintID = typeid (unsigned int).hash_code();
+        const static size_t __longID = typeid (long).hash_code();
+        const static size_t __ulongID = typeid (unsigned long).hash_code();
         const static size_t __boolID = typeid (bool).hash_code();
         const static size_t __doubleID = typeid (double).hash_code();
         const static size_t __floatID = typeid (float).hash_code();
         const static size_t __llID = typeid (long long).hash_code();
         const static size_t __ullID = typeid (unsigned long long).hash_code();
+        const static size_t __QCharID = typeid (QChar).hash_code();
         const static size_t __QStringID = typeid (QString).hash_code();
         const static size_t __QDateTimeID = typeid (QDateTime).hash_code();
         const static size_t __QDateID = typeid (QDate).hash_code();
@@ -81,6 +84,16 @@ public:
         else if(id == __uintID)
         {
             *(unsigned int *)p = rawVal.toUInt(&ok);
+            return 0;
+        }
+        else if(id == __longID)
+        {
+            *(long *)p = rawVal.toLong(&ok);
+            return 0;
+        }
+        else if(id == __ulongID)
+        {
+            *(unsigned long *)p = rawVal.toULong(&ok);
             return 0;
         }
         else if(id == __boolID)
@@ -108,6 +121,11 @@ public:
             *(unsigned long long *)p = rawVal.toULongLong(&ok);
             return 0;
         }
+        else if(id == __QCharID)
+        {
+            *(QChar *)p = rawVal.at(0);
+            return 0;
+        }
         else if(id == __QStringID)
         {
             *(QString *)p = rawVal;
@@ -130,7 +148,7 @@ public:
         }
         else if(id == __QByteArrayID)
         {
-            *(QByteArray *)p = QByteArray::fromBase64( rawVal.toLocal8Bit() );
+            *(QByteArray *)p = QByteArray::fromBase64( rawVal.toUtf8() );
             return 0;
         }
         else if(id == __QHostAddress)
@@ -147,11 +165,14 @@ public:
     int writeValue(const QString&& paraName, T & rawVal ){
         const static size_t __intID = typeid (int).hash_code();
         const static size_t __uintID = typeid (unsigned int).hash_code();
+        const static size_t __longID = typeid (long).hash_code();
+        const static size_t __ulongID = typeid (unsigned long).hash_code();
         const static size_t __boolID = typeid (bool).hash_code();
         const static size_t __doubleID = typeid (double).hash_code();
         const static size_t __floatID = typeid (float).hash_code();
         const static size_t __llID = typeid (long long).hash_code();
         const static size_t __ullID = typeid (unsigned long long).hash_code();
+        const static size_t __QCharID = typeid (QChar).hash_code();
         const static size_t __QStringID = typeid (QString).hash_code();
         const static size_t __QDateTimeID = typeid (QDateTime).hash_code();
         const static size_t __QDateID = typeid (QDate).hash_code();
@@ -170,6 +191,16 @@ public:
         else if(id == __uintID)
         {
             unsigned int temp = *(unsigned int*) p;
+            return writeParameters(QString(paraName), QString::number( temp ) );
+        }
+        else if(id == __longID)
+        {
+            long temp = *(long*) p;
+            return writeParameters(QString(paraName), QString::number( temp ) );
+        }
+        else if(id == __ulongID)
+        {
+            unsigned long temp = *(unsigned long*) p;
             return writeParameters(QString(paraName), QString::number( temp ) );
         }
         else if(id == __boolID)
@@ -196,6 +227,11 @@ public:
         {
             unsigned long long temp = *(unsigned long long*) p;
             return writeParameters(QString(paraName), QString::number( temp ) );
+        }
+        else if(id == __QCharID)
+        {
+            QChar temp = *(QChar*) p;
+            return writeParameters(QString(paraName), QString( temp ) );
         }
         else if(id == __QStringID)
         {
