@@ -48,7 +48,7 @@ public:
     //easy api, do not work for enum type
     //readValue combined
     template<typename T>
-    int readValue(const QString&& paraName, T & retVal){
+    int readValue(const QString&& paraName, T && retVal){
         QString rawVal = readParameters( QString(paraName) );
 
         const static size_t __intID = typeid (int).hash_code();
@@ -162,7 +162,7 @@ public:
 
     //writeValue combined
     template<typename T>
-    int writeValue(const QString&& paraName, T & rawVal ){
+    int writeValue(const QString&& paraName, T && rawVal ){
         const static size_t __intID = typeid (int).hash_code();
         const static size_t __uintID = typeid (unsigned int).hash_code();
         const static size_t __longID = typeid (long).hash_code();
