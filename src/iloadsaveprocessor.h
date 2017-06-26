@@ -48,7 +48,7 @@ public:
     //easy api, do not work for enum type
     //readValue combined
     template<typename T>
-    int readValue(const QString&& paraName, T && retVal){
+    int readValue(const QString&& paraName, T & retVal){
         QString rawVal = readParameters( QString(paraName) );
 
         const static size_t __intID = typeid (int).hash_code();
@@ -162,7 +162,7 @@ public:
 
     //writeValue combined
     template<typename T>
-    int writeValue(const QString&& paraName, T && rawVal ){
+    int writeValue(const QString&& paraName,const T & rawVal ){
         const static size_t __intID = typeid (int).hash_code();
         const static size_t __uintID = typeid (unsigned int).hash_code();
         const static size_t __longID = typeid (long).hash_code();
@@ -181,57 +181,48 @@ public:
         const static size_t __QHostAddress = typeid (QHostAddress).hash_code();
 
         const size_t id = (typeid (rawVal).hash_code());
-        void *p = &rawVal;
+        T value = rawVal;
+        void *p = &value;
 
         if(id == __intID)
         {
-            int temp = *(int*) p;
-            return writeParameters(QString(paraName), QString::number( temp ) );
+            return writeParameters(QString(paraName), QString::number( *(int*) p ) );
         }
         else if(id == __uintID)
         {
-            unsigned int temp = *(unsigned int*) p;
-            return writeParameters(QString(paraName), QString::number( temp ) );
+            return writeParameters(QString(paraName), QString::number( *(unsigned int*) p ) );
         }
         else if(id == __longID)
         {
-            long temp = *(long*) p;
-            return writeParameters(QString(paraName), QString::number( temp ) );
+            return writeParameters(QString(paraName), QString::number( *(long*) p ) );
         }
         else if(id == __ulongID)
         {
-            unsigned long temp = *(unsigned long*) p;
-            return writeParameters(QString(paraName), QString::number( temp ) );
+            return writeParameters(QString(paraName), QString::number( *(unsigned long*) p ) );
         }
         else if(id == __boolID)
         {
-            bool temp = *(bool*) p;
-            return writeParameters(QString(paraName), QString::number( temp ) );
+            return writeParameters(QString(paraName), QString::number( *(bool*) p ) );
         }
         else if(id == __doubleID)
         {
-            double temp = *(double*) p;
-            return writeParameters(QString(paraName), QString::number( temp ) );
+            return writeParameters(QString(paraName), QString::number( *(double*) p ) );
         }
         else if(id == __floatID)
         {
-            float temp = *(float*) p;
-            return writeParameters(QString(paraName), QString::number( temp ) );
+            return writeParameters(QString(paraName), QString::number( *(float*) p ) );
         }
         else if(id == __llID)
         {
-            long long temp = *(long long*) p;
-            return writeParameters(QString(paraName), QString::number( temp ) );
+            return writeParameters(QString(paraName), QString::number( *(long long*) p ) );
         }
         else if(id == __ullID)
         {
-            unsigned long long temp = *(unsigned long long*) p;
-            return writeParameters(QString(paraName), QString::number( temp ) );
+            return writeParameters(QString(paraName), QString::number( *(unsigned long long*) p ) );
         }
         else if(id == __QCharID)
         {
-            QChar temp = *(QChar*) p;
-            return writeParameters(QString(paraName), QString( temp ) );
+            return writeParameters(QString(paraName), QString( *(QChar*) p ) );
         }
         else if(id == __QStringID)
         {
@@ -239,28 +230,23 @@ public:
         }
         else if(id == __QDateTimeID)
         {
-            QDateTime temp = *(QDateTime*) p;
-            return writeParameters(QString(paraName), temp.toString() );
+            return writeParameters(QString(paraName), ((QDateTime*)p)->toString() );
         }
         else if(id == __QDateID)
         {
-            QDate temp = *(QDate*) p;
-            return writeParameters(QString(paraName), temp.toString() );
+            return writeParameters(QString(paraName), ((QDate*) p)->toString() );
         }
         else if(id == __QTimeID)
         {
-            QTime temp = *(QTime*) p;
-            return writeParameters(QString(paraName), temp.toString() );
+            return writeParameters(QString(paraName), ((QTime*) p)->toString() );
         }
         else if(id == __QByteArrayID)
         {
-            QByteArray temp = *(QByteArray*) p;
-            return writeParameters(QString(paraName), QString( temp.toBase64() ) );
+            return writeParameters(QString(paraName), QString( ((QByteArray*) p)->toBase64() ) );
         }
         else if(id == __QHostAddress)
         {
-            QHostAddress adr = *(QHostAddress*)p;
-            return writeParameters(QString(paraName), adr.toString() );
+            return writeParameters(QString(paraName), ((QHostAddress*)p)->toString() );
         }
         qDebug() << "wrap value error: unknow type:"<<id;
         return -1;
