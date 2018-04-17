@@ -1,5 +1,16 @@
 Qt.lib.2016.loadSaveProcessor2
-保存/读取 处理器
+Object Relational Mapping(ORM) Framwork
+v2.1 20180417
+
+Functions:
+1, Serialize / Deserialize Objects data. Support XMl, JSON fomat
+2, reflection(introspection) : access dynamically to classes definitions, retrieve properties and call classes methods.
+
+Rely:
+QAes: Third party library for AES encryption
+
+
+------------------------------------------------------------------------------------
 v2.0 20161221
 依赖库：
 
