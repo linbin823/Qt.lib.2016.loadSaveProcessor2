@@ -10,7 +10,6 @@
 #include <typeinfo>
 #include <QHostAddress>
 #include "qaeswrap.h"
-//#include "Logger.h"
 
 //not reenterable
 //not thread safe
@@ -19,7 +18,7 @@ class iLoadSaveProcessor
 {
 public:
     iLoadSaveProcessor(){}
-    virtual ~iLoadSaveProcessor(){}//多态的析构函数必须是virtual的
+    virtual ~iLoadSaveProcessor(){}
     //读写实例内的参数
     //参数1：读：参数的名称 写：参数的名称
     //参数2：读：返回参数值 写：传入参数值
@@ -30,8 +29,20 @@ public:
     //子实例写入流程：a、移动到实例（MoveToInstance） c、写入参数（writeParameters） d、返回父实例（MoveBackToParent）
     //参数1：ObjType 一般为类的名字
     //参数2：InstID实例标识符，一般为实例的序号
-    virtual int moveToInstance(const QString&& ObjType, const QString&& InstID) =0;
-    virtual int moveBackToParent() =0;
+    virtual int moveToInstance(const QString&& ObjType, const QString&& InstID) = 0;
+    virtual int moveBackToParent() = 0;
+
+    //get current object's ObjType and InstID
+    virtual QString currentObjType()const = 0;
+    virtual QString currentInstID()const = 0;
+
+    //get all sub-object's InstIDs of a certain objType
+    virtual QStringList instIDs(const QString&& ObjType)const = 0;
+    //get all sub-object's ObjTypes
+    virtual QStringList objTypes()const = 0;
+
+    //get all parametersName
+    virtual QStringList parametersName()const = 0;
 
     //实施保存工作流程：a、init the processor b、root instance save parameters to processor c、save File/ByteArray
     //实施读取工作流程：a、load File/ByteArray b、root instance load parameters from processor
@@ -44,8 +55,7 @@ public:
     //修改获取保存密码
     virtual void setPassWord(const QString&& pswd) = 0;
 
-
-    //easy api, do not work for enum type
+    //easy api, do not work for enum type and QVariant type
     //readValue combined
     template<typename T>
     int readValue(const QString&& paraName, T & retVal){

@@ -102,13 +102,13 @@ int loadSaveProcessorJson::writeParameters(const QString&& paraName, const QStri
  * 2、子实例写入流程：a、移动到实例（MoveToInstance） c、写入参数（writeParameters） d、返回父实例（MoveBackToParent）
  */
 int loadSaveProcessorJson::moveToInstance(const QString&& ObjType, const QString&& InstID){
-    if( !isValid() ){
+    if ( !isValid() ) {
         //qDebug() << "moveToInstance to " << ObjType << InstID << " error, parent not valid";
         return -1;
     }
 
 //    qDebug()<<"loadSaveProcessorJson::moveToInstance-before"<<getPathName()<<getParent()->keys();
-    pushParent( ObjType + InstID );
+    pushParent( ObjType + "::::" + InstID );
 //    qDebug()<<"loadSaveProcessorJson::moveToInstance-after"<<getPathName()<<getParent()->keys();
     return 0;
 }
@@ -124,7 +124,7 @@ int loadSaveProcessorJson::moveToInstance(const QString&& ObjType, const QString
  * 2、子实例写入流程：a、移动到实例（MoveToInstance） c、写入参数（writeParameters） d、返回父实例（MoveBackToParent）
  */
 int loadSaveProcessorJson::moveBackToParent(){
-    if( !isValid() ){
+    if ( !isValid() ) {
         //qDebug() << "moveBackToParent error, parent not valid";
         return -1;
     }
@@ -133,6 +133,51 @@ int loadSaveProcessorJson::moveBackToParent(){
     popParent();
 //    qDebug()<<"loadSaveProcessorJson::moveBackToParent-after"<<getPathName()<<getParent()->keys();
     return 0;
+}
+
+//get current object's ObjType and InstID
+QString loadSaveProcessorJson::currentObjType()const {
+    return getPathName().split("::::").at(0);
+}
+
+QString loadSaveProcessorJson::currentInstID()const {
+    QStringList ret = getPathName().split("::::");
+    if (ret.size() != 2) return QString::null;
+    return ret.at(1);
+}
+
+//get all sub-object's InstIDs of a certain objType
+QStringList loadSaveProcessorJson::instIDs(const QString&& ObjType)const {
+    QStringList ret, nameList;
+    foreach (QString name, getParent()->keys()) {
+        nameList = name.split("::::");
+        if (nameList.size() != 2) continue;
+        if (nameList.at(0) != ObjType) continue;
+        ret << nameList.at(1);
+    }
+    return ret;
+}
+
+//get all sub-object's ObjTypes
+QStringList loadSaveProcessorJson::objTypes()const {
+    QStringList ret, nameList;
+    foreach (QString name, getParent()->keys()) {
+        nameList = name.split("::::");
+        if (nameList.size() != 2) continue;
+        ret << nameList.at(0);
+    }
+    return ret;
+}
+
+//get all parametersName
+QStringList loadSaveProcessorJson::parametersName()const {
+    QStringList ret, nameList;
+    foreach (QString name, getParent()->keys()) {
+        nameList = name.split("::::");
+        if (nameList.size() != 1) continue;
+        ret << nameList.at(0);
+    }
+    return ret;
 }
 
 /*
@@ -272,7 +317,7 @@ QString loadSaveProcessorJson::getJsonFilePath(void){
  * 功能描述：
  * 1、返回parent堆顶元素
  */
-QJsonObject* loadSaveProcessorJson::getParent(){
+QJsonObject* loadSaveProcessorJson::getParent() const{
     return _JsonParent.last();
 }
 /*
@@ -282,13 +327,13 @@ QJsonObject* loadSaveProcessorJson::getParent(){
  * 功能描述：
  * 1、返回PathName堆顶元素
  */
-QString loadSaveProcessorJson::getPathName(){
+QString loadSaveProcessorJson::getPathName() const{
     return _JsonPathName.last();
 }
 /*
  * parent堆弹出
  * 输入参数：无
- * 返回：0成功、-1parent到底
+ * 返回：0成功、-1 parent到底
  * 功能描述：
  * 1、弹出parent堆最上面的一个元素
  * 2、把弹出的元素写入到新的堆顶元素中去
@@ -306,6 +351,7 @@ int loadSaveProcessorJson::popParent(){
     _JsonPathName.removeLast();
 
     getParent()->remove(lastName);
+    //insert new or update value
     getParent()->insert(lastName, QJsonValue(*lastObj) );
     delete lastObj;
     return 0;

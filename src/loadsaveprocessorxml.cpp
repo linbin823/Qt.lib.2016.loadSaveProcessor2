@@ -1,7 +1,8 @@
 ﻿#if _MSC_VER >= 1600
 #pragma execution_character_set("utf-8")
 #endif
-
+#include <QStringList>
+#include <QDomNodeList>
 #include "loadsaveprocessorxml.h"
 
 /*
@@ -122,19 +123,18 @@ int loadSaveProcessorXml::moveToInstance(const QString&& ObjType, const QString&
         return -1;
     }
 
-    QDomNodeList newList = getParent().elementsByTagName(ObjType);
-
-    for(int i=0; i<newList.size(); i++){
-        QDomElement newone = newList.at(i).toElement();
-        if(InstID.isNull()){
-            pushParent(newone);
+    QDomNodeList list = getParent().childNodes();
+    for(int i = 0; i < list.size(); i++) {
+        QDomElement ele = list.at(i).toElement();
+        if (InstID.isNull()) {
+            pushParent(ele);
             return 0;
-        }
-        else if( newone.attribute("id") == InstID){
-            pushParent(newone);
+        } else if (InstID == ele.attribute("id")) {
+            pushParent(ele);
             return 0;
         }
     }
+
     //找不到，建新再压栈
     QDomElement newone;
     setElement(newone, ObjType, InstID);
@@ -163,6 +163,55 @@ int loadSaveProcessorXml::moveBackToParent(){
     return 0;
 }
 
+//get current object's ObjType and InstID
+QString loadSaveProcessorXml::currentObjType()const {
+    return getParent().tagName();
+}
+
+QString loadSaveProcessorXml::currentInstID()const {
+    return getParent().attribute("id");
+}
+
+//get all sub-object's InstIDs of a certain objType
+QStringList loadSaveProcessorXml::instIDs(const QString&& ObjType)const {
+    QStringList ret;
+
+    QDomNodeList list = getParent().childNodes();
+    for(int i = 0; i < list.size(); i++) {
+        QDomElement ele = list.at(i).toElement();
+        if (ele.tagName() == ObjType) {
+            QString id = ele.attribute("id");
+            if( id != QString() ) {
+                ret << id;
+            }
+        }
+    }
+    ret.removeDuplicates();
+    return ret;
+}
+
+//get all sub-object's ObjTypes
+QStringList loadSaveProcessorXml::objTypes()const {
+    QStringList ret;
+    QDomNodeList list = getParent().childNodes();
+    for(int i = 0; i < list.size(); i++) {
+        QDomElement ele = list.at(i).toElement();
+        ret << ele.tagName();
+    }
+    ret.removeDuplicates();
+    return ret;
+}
+
+//get all parametersName
+QStringList loadSaveProcessorXml::parametersName()const {
+    QStringList ret;
+
+    QDomNodeList list = getParent().childNodes();
+    for(int i = 0; i < list.size(); i++) {
+        ret << list.at(i).toElement().tagName();
+    }
+    return ret;
+}
 /*
  * init
  * 输入参数：无
@@ -340,15 +389,15 @@ int loadSaveProcessorXml::writeXmlFile(){
  * 功能描述：
  */
 int loadSaveProcessorXml::getElement(QDomElement& res, QString tagName, QString id){
-    QDomNodeList selection = getParent().elementsByTagName(tagName);
-    if(!selection.isEmpty()){
-        if(id.isNull() ){
-            res = selection.at(0).toElement();
-            return 0;
-        }
-        for(int i=0; i<selection.count(); i++){
-            res = selection.at(i).toElement();
-            if(id == res.attribute("id")){
+    QDomNodeList list = getParent().childNodes();
+    for(int i = 0; i < list.size(); i++) {
+        QDomElement ele = list.at(i).toElement();
+        if (ele.tagName() == tagName) {
+            if (id.isNull()) {
+                res = ele;
+                return 0;
+            } else if (id == ele.attribute("id")) {
+                res = ele;
                 return 0;
             }
         }
@@ -372,15 +421,15 @@ int loadSaveProcessorXml::getElement(QDomElement& res, QString tagName, QString 
  * 4、元素id可以不指定，此时返回tagName相同的第一个元素
  */
 int loadSaveProcessorXml::setElement(QDomElement& res, QString tagName, QString id){
-    QDomNodeList selection = getParent().elementsByTagName(tagName);
-    if( !selection.isEmpty() ){
-        if( id.isNull() ){
-            res = selection.at(0).toElement();
-            return 1;//已存在，不新建
-        }
-        for(int i=0; i<selection.count(); i++){
-            if( id == selection.at(i).toElement().attribute("id") ){
-                res = selection.at(i).toElement();
+    QDomNodeList list = getParent().childNodes();
+    for(int i = 0; i < list.size(); i++) {
+        QDomElement ele = list.at(i).toElement();
+        if (ele.tagName() == tagName) {
+            if (id.isNull()) {
+                res = ele;
+                return 1;//已存在，不新建
+            } else if (id == ele.attribute("id")) {
+                res = ele;
                 return 1;//已存在，不新建
             }
         }

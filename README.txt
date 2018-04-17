@@ -6,8 +6,8 @@ Functions:
 1, Serialize / Deserialize Objects data. Support XMl, JSON fomat
 2, reflection(introspection) : access dynamically to classes definitions, retrieve properties and call classes methods.
 
-Rely:
-QAes: Third party library for AES encryption
+Third party library:
+QAes: for AES encryption
 
 
 ------------------------------------------------------------------------------------
