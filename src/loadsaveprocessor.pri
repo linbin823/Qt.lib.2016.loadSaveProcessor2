@@ -2,7 +2,7 @@ QT       += core xml xmlpatterns
 
 CONFIG   += c++11
 
-include($$PWD/../lib/QAes/QAes/QAes.pri)
+include($$PWD/3rd-party/QAes/QAes/QAes.pri)
 
 SOURCES +=  \
             $$PWD/loadsaveprocessorxml.cpp \
